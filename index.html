@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RankIt — Rank Everything</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e10;
+    --surface: #18181c;
+    --surface2: #222228;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0f0f2;
+    --muted: #888896;
+    --hint: #55555f;
+    --accent: #7c6cfa;
+    --accent2: #a78bfa;
+    --gold: #f5c842;
+    --silver: #b0b0c0;
+    --bronze: #d4845a;
+    --success: #34d399;
+    --success-bg: rgba(52,211,153,0.1);
+    --danger: #f87171;
+    --danger-bg: rgba(248,113,113,0.1);
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(14,14,16,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 24px; height: 56px; gap: 8px;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 20px;
+    color: var(--text); text-decoration: none;
+    margin-right: 8px; flex-shrink: 0;
+  }
+  .logo span { color: var(--accent2); }
+  .nav-tabs { display: flex; gap: 2px; flex: 1; overflow-x: auto; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nt {
+    padding: 6px 14px; border-radius: 8px;
+    border: none; background: transparent;
+    color: var(--muted); font-size: 13px; font-weight: 500;
+    cursor: pointer; white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .nt:hover { background: var(--surface); color: var(--text); }
+  .nt.on { background: var(--surface2); color: var(--text); }
+  .user-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 12px 5px 6px;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 20px; cursor: pointer; flex-shrink: 0;
+    font-size: 13px; color: var(--muted);
+    transition: border-color 0.15s;
+  }
+  .user-pill:hover { border-color: var(--accent); }
+
+  /* ── LAYOUT ── */
+  .page { display: none; }
+  .page.on { display: block; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; }
+
+  /* ── AVATAR ── */
+  .av {
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; flex-shrink: 0;
+    font-family: 'Syne', sans-serif;
+  }
+
+  /* ── TYPOGRAPHY ── */
+  h1 { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; line-height: 1.1; margin-bottom: 8px; }
+  h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .card-sm {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+  }
+
+  /* ── FORMS ── */
+  .fr { margin-bottom: 16px; }
+  .fr label {
+    display: block; font-size: 12px; font-weight: 500;
+    color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.06em; margin-bottom: 6px;
+  }
+  input, textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none; transition: border-color 0.15s;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 64px; }
+  input::placeholder, textarea::placeholder { color: var(--hint); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 20px; border-radius: var(--radius);
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    border: 1px solid var(--border2);
+    background: transparent; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--surface2); border-color: var(--border2); }
+  .btn:active { transform: scale(0.98); }
+  .btn.primary {
+    background: var(--accent); color: #fff;
+    border-color: transparent;
+  }
+  .btn.primary:hover { background: var(--accent2); }
+  .btn.full { width: 100%; }
+  .btn.sm { padding: 6px 14px; font-size: 13px; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── BANNERS ── */
+  .banner {
+    border-radius: var(--radius); padding: 10px 16px;
+    font-size: 13px; font-weight: 500; margin-bottom: 12px;
+  }
+  .banner.ok { background: var(--success-bg); border: 1px solid rgba(52,211,153,0.3); color: var(--success); }
+  .banner.err { background: var(--danger-bg); border: 1px solid rgba(248,113,113,0.3); color: var(--danger); }
+  .banner.info { background: rgba(124,108,250,0.1); border: 1px solid rgba(124,108,250,0.3); color: var(--accent2); }
+
+  /* ── STAT GRID ── */
+  .stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
+  .stat-val { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: var(--text); }
+  .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ── PROGRESS ── */
+  .prog-wrap { background: var(--surface2); border-radius: 3px; height: 3px; margin-bottom: 24px; overflow: hidden; }
+  .prog-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; transition: width 0.4s ease; }
+
+  /* ── CATEGORY GRID ── */
+  .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-bottom: 24px; }
+  .cat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 8px 12px;
+    cursor: pointer; text-align: center;
+    transition: all 0.15s;
+  }
+  .cat-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .cat-card.done { border-color: rgba(52,211,153,0.4); background: rgba(52,211,153,0.05); }
+  .cat-card.done:hover { border-color: var(--success); }
+  .cat-icon { font-size: 24px; margin-bottom: 6px; display: block; }
+  .cat-name { font-size: 11px; font-weight: 500; color: var(--text); line-height: 1.3; }
+  .cat-tick { font-size: 10px; color: var(--success); margin-top: 3px; }
+
+  /* ── CHIPS ── */
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .chip {
+    padding: 5px 12px; border-radius: 20px;
+    border: 1px solid var(--border); background: transparent;
+    font-size: 12px; font-weight: 500; color: var(--muted);
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--border2); color: var(--text); }
+  .chip.on { background: var(--accent); color: #fff; border-color: transparent; }
+
+  /* ── RANK ITEMS ── */
+  .rank-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    cursor: grab; user-select: none;
+    margin-bottom: 5px;
+    transition: border-color 0.1s, background 0.1s;
+  }
+  .rank-item:hover { border-color: var(--border2); }
+  .rank-item.dragging { opacity: 0.3; }
+  .rank-item.over { border-color: var(--accent); background: rgba(124,108,250,0.08); }
+  .rnum {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+    background: var(--surface2); color: var(--muted);
+    font-family: 'Syne', sans-serif;
+  }
+  .rnum.g { background: rgba(245,200,66,0.15); color: var(--gold); }
+  .rnum.s { background: rgba(176,176,192,0.15); color: var(--silver); }
+  .rnum.b { background: rgba(212,132,90,0.15); color: var(--bronze); }
+  .drag-handle { color: var(--hint); font-size: 11px; letter-spacing: 0.5px; margin-left: auto; }
+
+  /* ── BOARD ── */
+  .board-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px; margin-bottom: 5px;
+  }
+  .bar-wrap { flex: 2; height: 4px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; transition: width 0.5s ease; }
+  .section-hd {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;
+    margin: 24px 0 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── FEED ── */
+  .feed-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px; margin-bottom: 8px;
+  }
+
+  /* ── SHARE CARD ── */
+  .share-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px; margin-bottom: 10px;
+  }
+  .share-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; }
+
+  /* ── SETUP SCREEN ── */
+  .setup-hero {
+    text-align: center; padding: 48px 0 32px;
+  }
+  .setup-hero .logo-big {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px; font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .setup-hero .logo-big span { color: var(--accent2); }
+
+  /* ── SYNCING BADGE ── */
+  .sync-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 20px;
+    background: rgba(52,211,153,0.1);
+    border: 1px solid rgba(52,211,153,0.3);
+    color: var(--success); font-size: 11px; font-weight: 500;
+  }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  /* ── MOBILE ── */
+  @media (max-width: 600px) {
+    .topbar { padding: 0 12px; }
+    .wrap { padding: 20px 14px 64px; }
+    h1 { font-size: 26px; }
+    .stat-grid { grid-template-columns: repeat(3,1fr); gap: 6px; }
+    .stat-val { font-size: 20px; }
+    .nt { padding: 6px 10px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<nav class="topbar">
+  <a class="logo" href="#">Rank<span>It</span></a>
+  <div class="nav-tabs">
+    <button class="nt on" onclick="nav('home')">🏠 Home</button>
+    <button class="nt" onclick="nav('rank')">🎯 Rank</button>
+    <button class="nt" onclick="nav('board')">🏆 Scoreboard</button>
+    <button class="nt" onclick="nav('feed')">💬 Hot takes</button>
+    <button class="nt" onclick="nav('profile')">👤 Profile</button>
+  </div>
+  <div id="top-user" style="display:none">
+    <div class="user-pill" onclick="nav('profile')">
+      <div class="av" id="top-av" style="width:26px;height:26px;font-size:10px"></div>
+      <span id="top-name" style="font-size:13px"></span>
+    </div>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="pg-home" class="page on">
+  <div class="wrap">
+
+    <!-- Setup state -->
+    <div id="home-setup">
+      <div class="setup-hero">
+        <div class="logo-big">Rank<span>It</span></div>
+        <p style="color:var(--muted);font-size:16px;max-width:380px;margin:0 auto 32px">Rank everything. Argue about everything. See where the world lands.</p>
+      </div>
+      <div class="card">
+        <div class="fr">
+          <label>Your name</label>
+          <input id="setup-name" placeholder="e.g. Charlyssa" maxlength="30" autocomplete="off">
+        </div>
+        <div class="fr">
+          <label>Opening hot take (optional)</label>
+          <textarea id="setup-take" rows="2" placeholder="e.g. Tiramisu is the only correct dessert and I won't be taking questions"></textarea>
+        </div>
+        <button class="btn primary full" onclick="saveProfile()">Let's go →</button>
+      </div>
+    </div>
+
+    <!-- Logged-in dashboard -->
+    <div id="home-dash" style="display:none">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px">
+        <div class="av" id="dash-av" style="width:48px;height:48px;font-size:17px"></div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700" id="dash-name"></div>
+          <div style="font-size:13px;color:var(--muted)" id="dash-sub"></div>
+        </div>
+        <button class="btn sm" style="margin-left:auto" onclick="nav('rank')">Rank now →</button>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-val" id="ds-cats">0</div><div class="stat-lbl">Lists done</div></div>
+        <div class="stat-card"><div class="stat-val" id="ds-subs">0</div><div class="stat-lbl">Rankings</div></div>
+        <div class="stat-card"><div class="stat-val" id="ds-players">0</div><div class="stat-lbl">Players</div></div>
+      </div>
+      <div id="sync-status" style="margin-bottom:16px;display:none">
+        <span class="sync-badge"><span class="sync-dot"></span>Live · syncing to Google Sheets</span>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Latest hot takes</div>
+      <div id="dash-feed"></div>
+    </div>
+  </div>
+</div>
+
+<!-- RANK -->
+<div id="pg-rank" class="page">
+  <div class="wrap">
+    <div id="rank-cats">
+      <h2 style="margin-bottom:4px">Pick a list</h2>
+      <p class="sub">25 categories · drag your order · drop a hot take</p>
+      <div class="prog-wrap"><div class="prog-bar" id="prog" style="width:0%"></div></div>
+      <div class="chips" id="cat-chips"></div>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+    <div id="rank-active" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <button class="btn sm" onclick="backToCats()">← Back</button>
+        <span style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700" id="ra-title"></span>
+        <span style="font-size:12px;color:var(--muted);margin-left:auto" id="ra-count"></span>
+      </div>
+      <p class="sub" style="margin-bottom:12px">Drag to reorder — #1 at the top</p>
+      <div id="ra-banner" class="banner ok" style="display:none"></div>
+      <div id="ra-list" style="margin-bottom:16px"></div>
+      <div class="fr">
+        <label>Hot take on <span id="ra-cat-lbl"></span></label>
+        <textarea id="ra-take" rows="2" placeholder="The world needs to know your opinion..."></textarea>
+      </div>
+      <button class="btn primary full" onclick="submitRanking()">Save ranking</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCOREBOARD -->
+<div id="pg-board" class="page">
+  <div class="wrap">
+    <h2 style="margin-bottom:4px">Scoreboard</h2>
+    <p class="sub">Community consensus — averaged across all submissions</p>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-val" id="b-subs">0</div><div class="stat-lbl">Rankings</div></div>
+      <div class="stat-card"><div class="stat-val" id="b-champ" style="font-size:22px">—</div><div class="stat-lbl">Overall #1</div></div>
+      <div class="stat-card"><div class="stat-val" id="b-players">0</div><div class="stat-lbl">Players</div></div>
+    </div>
+    <div id="board-sync-banner" class="banner info" style="display:none"></div>
+    <div class="chips" id="board-chips"></div>
+    <div id="board-body"></div>
+  </div>
+</div>
+
+<!-- HOT TAKES -->
+<div id="pg-feed" class="page">
+  <div class="wrap">
+    <h2 style="margin-bottom:4px">Hot takes</h2>
+    <p class="sub">Unfiltered community opinions</p>
+    <div class="chips" id="feed-chips"></div>
+    <div id="feed-body"></div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="pg-profile" class="page">
+  <div class="wrap">
+    <h2 style="margin-bottom:20px">Your profile</h2>
+    <div id="prof-card" class="card" style="margin-bottom:24px"></div>
+    <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Your ranking cards</div>
+    <div id="share-cards"></div>
+
+    <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">
+      <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Google Sheets connection</div>
+      <div id="sheet-status-display"></div>
+      <div class="fr" style="margin-top:12px">
+        <label>Web App URL (to change)</label>
+        <input id="prof-url" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <button class="btn sm" onclick="updateSheetUrl()">Update & reconnect</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────
+// Your Google Apps Script Web App URL — users can update this in Profile
+const DEFAULT_SHEET_URL = '';
+
+// ─── DATA ─────────────────────────────────────────────────────────────────
+const GROUPS = ['All','Food','Pop Culture','Sports','Travel','Lifestyle'];
+
+const CATS = [
+  {id:'cake',name:'Cake',icon:'🎂',group:'Food',items:[{id:'choc',n:'Chocolate cake',i:'🍫'},{id:'cheese',n:'Cheesecake',i:'🧁'},{id:'carrot',n:'Carrot cake',i:'🥕'},{id:'rv',n:'Red velvet',i:'❤️'},{id:'tira',n:'Tiramisu',i:'☕'},{id:'lemon',n:'Lemon drizzle',i:'🍋'},{id:'victoria',n:'Victoria sponge',i:'🫐'},{id:'bf',n:'Black forest',i:'🍒'},{id:'tres',n:'Tres leches',i:'🥛'},{id:'pound',n:'Pound cake',i:'🟡'},{id:'funfetti',n:'Funfetti',i:'🎉'},{id:'opera',n:'Opera cake',i:'🎭'}]},
+  {id:'pie',name:'Pie',icon:'🥧',group:'Food',items:[{id:'apple',n:'Apple pie',i:'🍎'},{id:'pecan',n:'Pecan pie',i:'🥜'},{id:'pumpkin',n:'Pumpkin pie',i:'🎃'},{id:'keylime',n:'Key lime',i:'🟢'},{id:'cherry',n:'Cherry pie',i:'🍒'},{id:'lemon_m',n:'Lemon meringue',i:'🍋'},{id:'blueberry',n:'Blueberry pie',i:'🫐'},{id:'coconut',n:'Coconut cream',i:'🥥'},{id:'banana_c',n:'Banana cream',i:'🍌'},{id:'straw_p',n:'Strawberry pie',i:'🍓'},{id:'choc_p',n:'Chocolate cream',i:'🍫'},{id:'peach_p',n:'Peach pie',i:'🍑'}]},
+  {id:'cookie',name:'Cookie',icon:'🍪',group:'Food',items:[{id:'cc',n:'Chocolate chip',i:'🍪'},{id:'pb',n:'Peanut butter',i:'🥜'},{id:'snicker',n:'Snickerdoodle',i:'🌀'},{id:'sugar',n:'Sugar cookie',i:'⭐'},{id:'oatmeal',n:'Oatmeal raisin',i:'🌾'},{id:'macaron',n:'Macaron',i:'🟣'},{id:'sb',n:'Shortbread',i:'🟡'},{id:'dblchoc',n:'Double chocolate',i:'🍫'},{id:'thumb',n:'Thumbprint',i:'❤️'},{id:'biscotti',n:'Biscotti',i:'☕'},{id:'ginger',n:'Gingersnap',i:'🫚'},{id:'sandwich',n:'Sandwich cookie',i:'⚫'}]},
+  {id:'pastry',name:'Pastry',icon:'🥐',group:'Food',items:[{id:'croissant',n:'Croissant',i:'🥐'},{id:'eclair',n:'Éclair',i:'🟤'},{id:'prof',n:'Profiteroles',i:'🟡'},{id:'mille',n:'Mille-feuille',i:'📚'},{id:'danish',n:'Danish',i:'🌀'},{id:'churros',n:'Churros',i:'🟠'},{id:'baklava',n:'Baklava',i:'🍯'},{id:'cannoli',n:'Cannoli',i:'🤍'},{id:'strudel',n:'Apple strudel',i:'🍎'},{id:'tart',n:'Fruit tart',i:'🍓'},{id:'palmier',n:'Palmier',i:'🍂'},{id:'kouign',n:'Kouign-amann',i:'🧈'}]},
+  {id:'pudding',name:'Pudding',icon:'🍮',group:'Food',items:[{id:'cb',n:'Crème brûlée',i:'🔥'},{id:'panna',n:'Panna cotta',i:'🤍'},{id:'mousse',n:'Chocolate mousse',i:'🍫'},{id:'bread_p',n:'Bread pudding',i:'🍞'},{id:'rice_p',n:'Rice pudding',i:'🍚'},{id:'sticky',n:'Sticky toffee',i:'🟤'},{id:'flan',n:'Flan',i:'🍮'},{id:'trifle',n:'Trifle',i:'🫙'},{id:'lava',n:'Lava cake',i:'🌋'},{id:'custard',n:'Custard',i:'🟡'},{id:'tapioca',n:'Tapioca',i:'🫧'},{id:'chia',n:'Chia pudding',i:'🫐'}]},
+  {id:'frozen',name:'Frozen',icon:'🍦',group:'Food',items:[{id:'vanilla_i',n:'Vanilla ice cream',i:'🍦'},{id:'choc_i',n:'Chocolate ice cream',i:'🍫'},{id:'gelato',n:'Gelato',i:'🍨'},{id:'sorbet',n:'Sorbet',i:'🧊'},{id:'sundae',n:'Ice cream sundae',i:'🍨'},{id:'banana_s',n:'Banana split',i:'🍌'},{id:'froyo',n:'Frozen yogurt',i:'🟡'},{id:'baked_ak',n:'Baked Alaska',i:'❄️'},{id:'affogato',n:'Affogato',i:'☕'},{id:'popsicle',n:'Popsicle',i:'🧊'},{id:'shake',n:'Milkshake',i:'🥛'},{id:'semi',n:'Semifreddo',i:'🤍'}]},
+  {id:'bar',name:'Bar & brownie',icon:'🟫',group:'Food',items:[{id:'brownie',n:'Classic brownie',i:'🟫'},{id:'blondie',n:'Blondie',i:'🟡'},{id:'lemon_b',n:'Lemon bar',i:'🍋'},{id:'rice_k',n:'Rice krispie',i:'🟡'},{id:'magic',n:'Magic bar',i:'🌈'},{id:'nanaimo',n:'Nanaimo bar',i:'🟤'},{id:'rocky',n:'Rocky road bar',i:'🌋'},{id:'pb_bar',n:'Peanut butter bar',i:'🥜'},{id:'fig',n:'Fig bar',i:'🍇'},{id:'fudge',n:'Fudge bar',i:'🍫'},{id:'cc_bar',n:'Cheesecake bar',i:'🧁'},{id:'sb_bar',n:'Shortbread bar',i:'🟡'}]},
+  {id:'donut',name:'Donut & fried',icon:'🍩',group:'Food',items:[{id:'glazed',n:'Glazed donut',i:'🍩'},{id:'cream_d',n:'Cream-filled',i:'🟡'},{id:'fritter',n:'Apple fritter',i:'🍎'},{id:'beignet',n:'Beignet',i:'⭐'},{id:'funnel',n:'Funnel cake',i:'🌀'},{id:'zeppole',n:'Zeppole',i:'🤍'},{id:'louk',n:'Loukoumades',i:'🍯'},{id:'froreo',n:'Fried Oreo',i:'⚫'},{id:'cruller',n:'Cruller',i:'🔵'},{id:'old_f',n:'Old fashioned',i:'🟤'},{id:'choc_d',n:'Chocolate donut',i:'🍫'},{id:'sprinkle',n:'Sprinkle donut',i:'🌈'}]},
+  {id:'pizza',name:'Pizza style',icon:'🍕',group:'Food',items:[{id:'neapol',n:'Neapolitan',i:'🍕'},{id:'ny',n:'New York slice',i:'🗽'},{id:'chicago',n:'Chicago deep dish',i:'🏙️'},{id:'sicilian',n:'Sicilian',i:'🇮🇹'},{id:'detroit',n:'Detroit style',i:'🚗'},{id:'margh',n:'Margherita',i:'🍅'},{id:'pepp',n:'Pepperoni',i:'🔴'},{id:'bbq_ch',n:'BBQ chicken',i:'🍗'},{id:'veggie',n:'Veggie supreme',i:'🥦'},{id:'hawaiian',n:'Hawaiian',i:'🍍'},{id:'white',n:'White pizza',i:'🧀'},{id:'calzone',n:'Calzone',i:'🌯'}]},
+  {id:'coffee',name:'Coffee drink',icon:'☕',group:'Food',items:[{id:'espresso',n:'Espresso',i:'☕'},{id:'latte',n:'Latte',i:'🥛'},{id:'cappuc',n:'Cappuccino',i:'☁️'},{id:'cold_b',n:'Cold brew',i:'🧊'},{id:'flat_w',n:'Flat white',i:'⚪'},{id:'ameri',n:'Americano',i:'🖤'},{id:'macch',n:'Macchiato',i:'🟤'},{id:'mocha',n:'Mocha',i:'🍫'},{id:'cortado',n:'Cortado',i:'🟡'},{id:'iced_l',n:'Iced latte',i:'🧋'},{id:'aff2',n:'Affogato',i:'🍨'},{id:'dalg',n:'Dalgona',i:'🫧'}]},
+  {id:'fastfood',name:'Fast food',icon:'🍔',group:'Food',items:[{id:'bigmac',n:'Big Mac',i:'🍔'},{id:'whopper',n:'Whopper',i:'🔥'},{id:'crispy',n:'Crispy chicken sandwich',i:'🍗'},{id:'nuggets',n:'McNuggets',i:'🟡'},{id:'fries',n:'French fries',i:'🍟'},{id:'taco',n:'Crunchy taco',i:'🌮'},{id:'burrito',n:'Burrito bowl',i:'🌯'},{id:'shake_b',n:'ShackBurger',i:'🍔'},{id:'in_out',n:'Double double',i:'🟡'},{id:'orange_c',n:'Orange chicken',i:'🍊'},{id:'cinnabon',n:'Cinnabon roll',i:'🌀'},{id:'cfa',n:'Chick-fil-A sandwich',i:'🍗'}]},
+  {id:'breakfast',name:'Breakfast',icon:'🥞',group:'Food',items:[{id:'pancakes',n:'Pancakes',i:'🥞'},{id:'waffles',n:'Waffles',i:'🧇'},{id:'eggs_b',n:'Eggs Benedict',i:'🥚'},{id:'fr_toast',n:'French toast',i:'🍞'},{id:'avo',n:'Avocado toast',i:'🥑'},{id:'bagel',n:'Bagel & lox',i:'🥯'},{id:'acai',n:'Acai bowl',i:'🫐'},{id:'granola',n:'Granola & yogurt',i:'🌾'},{id:'croque',n:'Croque madame',i:'🧀'},{id:'shakshuka',n:'Shakshuka',i:'🍅'},{id:'omelette',n:'Omelette',i:'🍳'},{id:'full_e',n:'Full English',i:'🥓'}]},
+  {id:'90smovie',name:'90s movies',icon:'🎬',group:'Pop Culture',items:[{id:'lion_k',n:'The Lion King',i:'🦁'},{id:'home_a',n:'Home Alone',i:'🏠'},{id:'pulp',n:'Pulp Fiction',i:'💼'},{id:'matrix',n:'The Matrix',i:'🟢'},{id:'forrest',n:'Forrest Gump',i:'🍫'},{id:'schindler',n:"Schindler's List",i:'📜'},{id:'titanic',n:'Titanic',i:'🚢'},{id:'goodwill',n:'Good Will Hunting',i:'🧮'},{id:'fightclub',n:'Fight Club',i:'🥊'},{id:'shawshank',n:'The Shawshank Redemption',i:'🔑'},{id:'toy_s',n:'Toy Story',i:'🤠'},{id:'seven',n:'Se7en',i:'🔍'}]},
+  {id:'2000smovie',name:'2000s movies',icon:'🎥',group:'Pop Culture',items:[{id:'gladiator',n:'Gladiator',i:'⚔️'},{id:'lotr',n:'Lord of the Rings',i:'💍'},{id:'nemo',n:'Finding Nemo',i:'🐠'},{id:'dark_k',n:'The Dark Knight',i:'🦇'},{id:'avatar',n:'Avatar',i:'🔵'},{id:'inc',n:'Inception',i:'🌀'},{id:'slumdog',n:'Slumdog Millionaire',i:'🎰'},{id:'nocount',n:'No Country for Old Men',i:'🪙'},{id:'wall_e',n:'WALL-E',i:'🤖'},{id:'departed',n:'The Departed',i:'🚔'},{id:'up',n:'Up',i:'🎈'},{id:'brokeback',n:'Brokeback Mountain',i:'⛰️'}]},
+  {id:'tvshow',name:'TV shows',icon:'📺',group:'Pop Culture',items:[{id:'sopranos',n:'The Sopranos',i:'🤌'},{id:'breaking',n:'Breaking Bad',i:'⚗️'},{id:'got',n:'Game of Thrones',i:'👑'},{id:'office',n:'The Office',i:'📎'},{id:'friends',n:'Friends',i:'☕'},{id:'seinfeld',n:'Seinfeld',i:'🥨'},{id:'wire',n:'The Wire',i:'📡'},{id:'sherlock',n:'Sherlock',i:'🔍'},{id:'stranger',n:'Stranger Things',i:'🔦'},{id:'ted_lasso',n:'Ted Lasso',i:'⚽'},{id:'succession',n:'Succession',i:'💰'},{id:'mandalorian',n:'The Mandalorian',i:'🪖'}]},
+  {id:'music_genre',name:'Music genre',icon:'🎵',group:'Pop Culture',items:[{id:'rock',n:'Classic rock',i:'🎸'},{id:'hiphop',n:'Hip hop',i:'🎤'},{id:'jazz',n:'Jazz',i:'🎷'},{id:'pop',n:'Pop',i:'🌟'},{id:'rnb',n:'R&B / Soul',i:'🎶'},{id:'country',n:'Country',i:'🤠'},{id:'classical',n:'Classical',i:'🎻'},{id:'electronic',n:'Electronic / EDM',i:'🎛️'},{id:'reggae',n:'Reggae',i:'🌿'},{id:'metal',n:'Metal',i:'🤘'},{id:'indie',n:'Indie / Alternative',i:'🎨'},{id:'latin',n:'Latin',i:'💃'}]},
+  {id:'videogame',name:'Video games',icon:'🎮',group:'Pop Culture',items:[{id:'zelda',n:'Zelda: BOTW',i:'🗡️'},{id:'minecraft',n:'Minecraft',i:'⛏️'},{id:'gta5',n:'GTA V',i:'🚗'},{id:'tetris',n:'Tetris',i:'🟦'},{id:'mario_64',n:'Super Mario 64',i:'⭐'},{id:'rdr2',n:'Red Dead 2',i:'🤠'},{id:'dark_souls',n:'Dark Souls',i:'🔥'},{id:'portal2',n:'Portal 2',i:'🔵'},{id:'hollow',n:'Hollow Knight',i:'🦋'},{id:'hades',n:'Hades',i:'⚡'},{id:'last_us',n:'The Last of Us',i:'🍄'},{id:'elden',n:'Elden Ring',i:'🌑'}]},
+  {id:'sport',name:'Sport to watch',icon:'🏆',group:'Sports',items:[{id:'nfl',n:'American football',i:'🏈'},{id:'nba',n:'Basketball',i:'🏀'},{id:'soccer',n:'Soccer / Football',i:'⚽'},{id:'baseball',n:'Baseball',i:'⚾'},{id:'tennis',n:'Tennis',i:'🎾'},{id:'f1',n:'Formula 1',i:'🏎️'},{id:'golf',n:'Golf',i:'⛳'},{id:'boxing',n:'Boxing / MMA',i:'🥊'},{id:'hockey',n:'Ice hockey',i:'🏒'},{id:'swimming',n:'Swimming',i:'🏊'},{id:'cycling',n:'Cycling',i:'🚴'},{id:'athletics',n:'Track & field',i:'🏃'}]},
+  {id:'travel',name:'Travel destination',icon:'✈️',group:'Travel',items:[{id:'japan',n:'Japan',i:'🗾'},{id:'italy',n:'Italy',i:'🇮🇹'},{id:'france',n:'France',i:'🗼'},{id:'nz',n:'New Zealand',i:'🥝'},{id:'greece',n:'Greece',i:'🏛️'},{id:'thailand',n:'Thailand',i:'🌴'},{id:'peru',n:'Peru',i:'🏔️'},{id:'morocco',n:'Morocco',i:'🕌'},{id:'iceland',n:'Iceland',i:'❄️'},{id:'brazil',n:'Brazil',i:'🌊'},{id:'india',n:'India',i:'🇮🇳'},{id:'nyc',n:'New York City',i:'🗽'}]},
+  {id:'holiday',name:'Holiday',icon:'🎄',group:'Lifestyle',items:[{id:'xmas',n:'Christmas',i:'🎄'},{id:'halloween',n:'Halloween',i:'🎃'},{id:'thanksgiving',n:'Thanksgiving',i:'🦃'},{id:'nye',n:"New Year's Eve",i:'🎆'},{id:'vday',n:"Valentine's Day",i:'❤️'},{id:'easter',n:'Easter',i:'🐣'},{id:'july4',n:'4th of July',i:'🎇'},{id:'stpat',n:"St. Patrick's Day",i:'🍀'},{id:'cinco',n:'Cinco de Mayo',i:'🌮'},{id:'hanukkah',n:'Hanukkah',i:'🕎'},{id:'mothers',n:"Mother's Day",i:'💐'},{id:'mardi',n:'Mardi Gras',i:'🎭'}]},
+  {id:'pet',name:'Pet',icon:'🐾',group:'Lifestyle',items:[{id:'dog',n:'Dog',i:'🐕'},{id:'cat',n:'Cat',i:'🐈'},{id:'fish',n:'Fish / aquarium',i:'🐠'},{id:'rabbit',n:'Rabbit',i:'🐇'},{id:'hamster',n:'Hamster',i:'🐹'},{id:'bird',n:'Bird / parrot',i:'🦜'},{id:'turtle',n:'Turtle',i:'🐢'},{id:'lizard',n:'Lizard',i:'🦎'},{id:'snake',n:'Snake',i:'🐍'},{id:'guinea',n:'Guinea pig',i:'🐹'},{id:'chinchilla',n:'Chinchilla',i:'🐭'},{id:'horse',n:'Horse / pony',i:'🐴'}]},
+  {id:'car',name:'Dream car brand',icon:'🚗',group:'Lifestyle',items:[{id:'ferrari',n:'Ferrari',i:'🐴'},{id:'porsche',n:'Porsche',i:'🏎️'},{id:'lambo',n:'Lamborghini',i:'🐂'},{id:'bmw',n:'BMW',i:'🔵'},{id:'mercedes',n:'Mercedes-Benz',i:'⭐'},{id:'tesla',n:'Tesla',i:'⚡'},{id:'mclaren',n:'McLaren',i:'🟠'},{id:'aston',n:'Aston Martin',i:'🟩'},{id:'bentley',n:'Bentley',i:'👑'},{id:'rolls',n:'Rolls-Royce',i:'💎'},{id:'bugatti',n:'Bugatti',i:'🔵'},{id:'ford_gt',n:'Ford GT',i:'🔵'}]},
+  {id:'bookgenre',name:'Book genre',icon:'📚',group:'Lifestyle',items:[{id:'thriller',n:'Thriller / mystery',i:'🔍'},{id:'sci_fi',n:'Science fiction',i:'🚀'},{id:'fantasy',n:'Fantasy',i:'🐉'},{id:'romance',n:'Romance',i:'❤️'},{id:'lit_fic',n:'Literary fiction',i:'🖊️'},{id:'history',n:'Historical fiction',i:'📜'},{id:'horror',n:'Horror',i:'👻'},{id:'biography',n:'Biography / memoir',i:'👤'},{id:'self_help',n:'Self-help',i:'💪'},{id:'true_crime',n:'True crime',i:'🔒'},{id:'graphic',n:'Graphic novel',i:'💬'},{id:'poetry',n:'Poetry',i:'🌸'}]},
+  {id:'season',name:'Season',icon:'🍂',group:'Lifestyle',items:[{id:'spring',n:'Spring',i:'🌸'},{id:'summer',n:'Summer',i:'☀️'},{id:'fall',n:'Fall / Autumn',i:'🍂'},{id:'winter',n:'Winter',i:'❄️'}]},
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────
+let S = {
+  user: null,
+  sheetUrl: localStorage.getItem('rankit_url') || DEFAULT_SHEET_URL,
+  orders: {},
+  votes: {},
+  takes: [],
+  players: [],
+  bFilter: 'all',
+  fFilter: 'all',
+  catFilter: 'All',
+  activeCat: null,
+  dragSrc: null,
+};
+
+// Load saved state
+try {
+  const saved = JSON.parse(localStorage.getItem('rankit_state') || '{}');
+  if (saved.user) S.user = saved.user;
+  if (saved.votes) S.votes = saved.votes;
+  if (saved.takes) S.takes = saved.takes;
+  if (saved.players) S.players = saved.players;
+  if (saved.orders) S.orders = saved.orders;
+} catch(e) {}
+
+function saveState() {
+  localStorage.setItem('rankit_state', JSON.stringify({
+    user: S.user, votes: S.votes, takes: S.takes,
+    players: S.players, orders: S.orders
+  }));
+}
+
+// ─── COLORS ───────────────────────────────────────────────────────────────
+const COLORS = [
+  ['#4f46e5','#c7d2fe'],['#0891b2','#a5f3fc'],['#059669','#a7f3d0'],
+  ['#d97706','#fde68a'],['#dc2626','#fecaca'],['#7c3aed','#ddd6fe'],
+  ['#0284c7','#bae6fd'],['#be185d','#fbcfe8'],
+];
+function pickColor(name) { return COLORS[name.charCodeAt(0) % COLORS.length]; }
+function mkAv(name, sz, fs) {
+  const [bg, fg] = pickColor(name);
+  return `<div class="av" style="width:${sz}px;height:${sz}px;font-size:${fs}px;background:${bg}22;color:${bg};border:1px solid ${bg}44;flex-shrink:0">${name.slice(0,2).toUpperCase()}</div>`;
+}
+
+// ─── SHEETS API ───────────────────────────────────────────────────────────
+async function sheetGet() {
+  if (!S.sheetUrl) return null;
+  try {
+    const r = await fetch(S.sheetUrl + '?action=getAll');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } catch(e) {
+    console.warn('Sheet read failed:', e);
+    return null;
+  }
+}
+
+async function sheetPost(payload) {
+  if (!S.sheetUrl) return;
+  try {
+    await fetch(S.sheetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      mode: 'no-cors' // fire-and-forget; we trust local state
+    });
+  } catch(e) {
+    console.warn('Sheet write failed:', e);
+  }
+}
+
+async function loadFromSheet() {
+  const data = await sheetGet();
+  if (!data) return false;
+
+  // Ingest votes (skip header row)
+  if (data.votes && data.votes.length > 1) {
+    data.votes.slice(1).forEach(r => {
+      const [ts, user, cat, itemId, pos, total] = r;
+      if (!S.votes[cat]) S.votes[cat] = { _subs: 0 };
+      if (!S.votes[cat][itemId]) S.votes[cat][itemId] = { total: 0, count: 0 };
+      S.votes[cat][itemId].total += Number(pos);
+      S.votes[cat][itemId].count++;
+    });
+    // Count unique user+cat combos as submissions
+    const seen = new Set();
+    data.votes.slice(1).forEach(r => {
+      const key = r[1] + '|' + r[2];
+      if (!seen.has(key)) {
+        seen.add(key);
+        if (!S.votes[r[2]]) S.votes[r[2]] = { _subs: 0 };
+        S.votes[r[2]]._subs = (S.votes[r[2]]._subs || 0) + 1;
+      }
+    });
+  }
+
+  // Ingest hot takes
+  if (data.hotTakes && data.hotTakes.length > 1) {
+    const existing = new Set(S.takes.map(t => t.ts + t.user + t.text));
+    data.hotTakes.slice(1).forEach(r => {
+      const t = { ts: r[0], user: r[1], initials: r[2], cat: r[3], catName: r[4], text: r[5] };
+      if (!existing.has(t.ts + t.user + t.text)) S.takes.push(t);
+    });
+  }
+
+  // Ingest players
+  if (data.players && data.players.length > 1) {
+    const existing = new Set(S.players.map(p => p.name));
+    data.players.slice(1).forEach(r => {
+      if (!existing.has(r[1])) S.players.push({ name: r[1], initials: r[2] });
+    });
+  }
+
+  saveState();
+  return true;
+}
+
+// ─── PROFILE ──────────────────────────────────────────────────────────────
+function saveProfile() {
+  const name = document.getElementById('setup-name').value.trim();
+  if (!name) { alert('Please enter your name!'); return; }
+  const take = document.getElementById('setup-take').value.trim();
+  S.user = { name, initials: name.slice(0,2).toUpperCase() };
+  if (!S.players.find(p => p.name === name)) {
+    S.players.push(S.user);
+    sheetPost({ type: 'player', name, initials: name.slice(0,2).toUpperCase() });
+  }
+  if (take) {
+    const t = { user: name, initials: name.slice(0,2).toUpperCase(), cat: 'general', catName: 'General', text: take, ts: new Date().toISOString() };
+    S.takes.push(t);
+    sheetPost({ type: 'hotTake', ...t });
+  }
+  saveState();
+  document.getElementById('home-setup').style.display = 'none';
+  document.getElementById('home-dash').style.display = 'block';
+  document.getElementById('top-user').style.display = 'block';
+  updateTopbar();
+  updateDash();
+  if (S.sheetUrl) loadFromSheet().then(ok => { if (ok) updateDash(); });
+}
+
+function updateTopbar() {
+  if (!S.user) return;
+  const [bg] = pickColor(S.user.name);
+  const av = document.getElementById('top-av');
+  av.style.background = bg + '22';
+  av.style.color = bg;
+  av.style.border = `1px solid ${bg}44`;
+  av.textContent = S.user.initials;
+  document.getElementById('top-name').textContent = S.user.name;
+}
+
+function updateDash() {
+  if (!S.user) return;
+  const [bg] = pickColor(S.user.name);
+  const av = document.getElementById('dash-av');
+  av.style.background = bg + '22'; av.style.color = bg;
+  av.style.border = `1px solid ${bg}44`;
+  av.textContent = S.user.initials;
+  document.getElementById('dash-name').textContent = S.user.name;
+  const done = Object.keys(S.votes).filter(k => S.votes[k] && S.votes[k]._subs > 0).length;
+  document.getElementById('dash-sub').textContent = done + ' categories ranked';
+  document.getElementById('ds-cats').textContent = done;
+  document.getElementById('ds-subs').textContent = Object.values(S.votes).reduce((a,v) => a + (v._subs||0), 0);
+  document.getElementById('ds-players').textContent = S.players.length;
+  if (S.sheetUrl) document.getElementById('sync-status').style.display = 'block';
+  const recent = [...S.takes].reverse().slice(0, 4);
+  document.getElementById('dash-feed').innerHTML = recent.length
+    ? recent.map(feedCard).join('')
+    : '<p style="color:var(--muted);font-size:13px">No hot takes yet!</p>';
+}
+
+function updateSheetUrl() {
+  const url = document.getElementById('prof-url').value.trim();
+  if (!url) return;
+  S.sheetUrl = url;
+  localStorage.setItem('rankit_url', url);
+  loadFromSheet().then(ok => {
+    renderSheetStatus(ok);
+    if (ok) { renderBoard(); renderFeed(); updateDash(); }
+  });
+}
+
+function renderSheetStatus(ok) {
+  document.getElementById('sheet-status-display').innerHTML = ok
+    ? '<div class="banner ok">✓ Connected to Google Sheets — data syncing live</div>'
+    : (S.sheetUrl
+      ? '<div class="banner err">Could not reach your sheet — check the URL and deployment settings</div>'
+      : '<div class="banner info">No sheet connected — paste your Web App URL below to enable live multiplayer</div>');
+}
+
+// ─── FEED CARD ────────────────────────────────────────────────────────────
+function feedCard(t) {
+  const [bg] = pickColor(t.user || 'A');
+  return `<div class="feed-item">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      ${mkAv(t.user||'A', 30, 11)}
+      <span style="font-size:13px;font-weight:500">${t.user}</span>
+      <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--surface2);color:var(--muted)">${t.catName}</span>
+    </div>
+    <p style="font-size:14px;line-height:1.5;color:var(--text)">"${t.text}"</p>
+  </div>`;
+}
+
+// ─── RANK LISTS ───────────────────────────────────────────────────────────
+function renderCatGrid() {
+  const done = Object.keys(S.votes).filter(k => S.votes[k] && S.votes[k]._subs > 0);
+  const filtered = S.catFilter === 'All' ? CATS : CATS.filter(c => c.group === S.catFilter);
+  document.getElementById('cat-grid').innerHTML = filtered.map(c =>
+    `<div class="cat-card${done.includes(c.id) ? ' done' : ''}" onclick="openCat('${c.id}')">
+      <div class="cat-icon">${c.icon}</div>
+      <div class="cat-name">${c.name}</div>
+      ${done.includes(c.id) ? '<div class="cat-tick">✓ ranked</div>' : ''}
+    </div>`
+  ).join('');
+  document.getElementById('prog').style.width = Math.round(done.length / CATS.length * 100) + '%';
+  document.getElementById('cat-chips').innerHTML = GROUPS.map(g =>
+    `<button class="chip${S.catFilter === g ? ' on' : ''}" onclick="setCatFilter('${g}')">${g}</button>`
+  ).join('');
+}
+
+function setCatFilter(g) { S.catFilter = g; renderCatGrid(); }
+
+function openCat(id) {
+  if (!S.user) { nav('home'); return; }
+  S.activeCat = id;
+  const list = CATS.find(l => l.id === id);
+  if (!S.orders[id]) S.orders[id] = [...list.items];
+  document.getElementById('ra-title').textContent = list.icon + ' ' + list.name;
+  document.getElementById('ra-cat-lbl').textContent = list.name;
+  document.getElementById('ra-count').textContent = list.items.length + ' items';
+  document.getElementById('ra-take').value = '';
+  document.getElementById('ra-banner').style.display = 'none';
+  document.getElementById('rank-cats').style.display = 'none';
+  document.getElementById('rank-active').style.display = 'block';
+  renderItems(id);
+}
+
+function backToCats() {
+  document.getElementById('rank-cats').style.display = 'block';
+  document.getElementById('rank-active').style.display = 'none';
+  S.activeCat = null;
+}
+
+function renderItems(catId) {
+  const el = document.getElementById('ra-list');
+  el.innerHTML = '';
+  S.orders[catId].forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'rank-item';
+    div.draggable = true;
+    div.dataset.id = item.id;
+    const nc = i === 0 ? 'rnum g' : i === 1 ? 'rnum s' : i === 2 ? 'rnum b' : 'rnum';
+    div.innerHTML = `<div class="${nc}">${i+1}</div><span style="font-size:16px">${item.i}</span><span style="flex:1;font-size:14px;font-weight:500">${item.n}</span><span class="drag-handle">⋮⋮</span>`;
+    div.addEventListener('dragstart', e => { S.dragSrc = div; setTimeout(() => div.classList.add('dragging'), 0); e.dataTransfer.effectAllowed = 'move'; });
+    div.addEventListener('dragend', () => { div.classList.remove('dragging'); el.querySelectorAll('.over').forEach(x => x.classList.remove('over')); refreshNums(el, catId); });
+    div.addEventListener('dragover', e => { e.preventDefault(); if (div !== S.dragSrc) { el.querySelectorAll('.over').forEach(x => x.classList.remove('over')); div.classList.add('over'); } });
+    div.addEventListener('drop', e => {
+      e.preventDefault();
+      if (S.dragSrc && S.dragSrc !== div) {
+        const ch = [...el.children], si = ch.indexOf(S.dragSrc), ti = ch.indexOf(div);
+        if (si < ti) el.insertBefore(S.dragSrc, div.nextSibling); else el.insertBefore(S.dragSrc, div);
+        const ids = [...el.children].map(c => c.dataset.id);
+        S.orders[catId] = ids.map(id => CATS.find(l => l.id === catId).items.find(x => x.id === id));
+        refreshNums(el, catId);
+      }
+    });
+    el.appendChild(div);
+  });
+}
+
+function refreshNums(el, catId) {
+  [...el.children].forEach((item, i) => {
+    const n = item.querySelector('.rnum');
+    n.className = i === 0 ? 'rnum g' : i === 1 ? 'rnum s' : i === 2 ? 'rnum b' : 'rnum';
+    n.textContent = i + 1;
+  });
+}
+
+async function submitRanking() {
+  const id = S.activeCat;
+  const list = CATS.find(l => l.id === id);
+  const items = [...document.querySelectorAll('#ra-list .rank-item')].map(el => el.dataset.id);
+  if (!S.votes[id]) S.votes[id] = { _subs: 0 };
+  items.forEach((itemId, pos) => {
+    if (!S.votes[id][itemId]) S.votes[id][itemId] = { total: 0, count: 0 };
+    S.votes[id][itemId].total += pos;
+    S.votes[id][itemId].count++;
+  });
+  S.votes[id]._subs = (S.votes[id]._subs || 0) + 1;
+  const take = document.getElementById('ra-take').value.trim();
+  if (take && S.user) {
+    const t = { user: S.user.name, initials: S.user.initials, cat: id, catName: list.name, text: take, ts: new Date().toISOString() };
+    S.takes.push(t);
+    sheetPost({ type: 'hotTake', ...t });
+  }
+  sheetPost({ type: 'vote', user: S.user.name, category: id, items: items.map((itemId, i) => ({ id: itemId, pos: i, total: items.length })) });
+  saveState();
+  const b = document.getElementById('ra-banner');
+  b.textContent = S.sheetUrl ? '✓ Saved to Google Sheets!' : '✓ Saved locally! Add your Sheet URL in Profile to sync globally.';
+  b.style.display = 'block';
+  setTimeout(() => b.style.display = 'none', 3000);
+  renderCatGrid();
+  if (S.user) updateDash();
+}
+
+// ─── SCOREBOARD ───────────────────────────────────────────────────────────
+function renderBoard() {
+  const cats = S.bFilter === 'all' ? CATS : CATS.filter(l => l.id === S.bFilter);
+  let html = '', totalSubs = 0, champName = '—', champScore = -1;
+  cats.forEach(list => {
+    const cv = S.votes[list.id];
+    if (!cv || !cv._subs) { if (S.bFilter !== 'all') html += '<p style="color:var(--muted);font-size:13px;padding:16px 0">No rankings yet — be the first!</p>'; return; }
+    totalSubs += cv._subs;
+    const scored = list.items.map(item => {
+      const v = cv[item.id];
+      if (!v) return null;
+      const avg = v.total / v.count;
+      const score = Math.round((list.items.length - avg) * 10);
+      if (score > champScore) { champScore = score; champName = item.i + ' ' + item.n; }
+      return { ...item, avg, score, count: v.count };
+    }).filter(Boolean).sort((a, b) => a.avg - b.avg).slice(0, 8);
+    if (!scored.length) return;
+    const max = scored[0].score || 1;
+    const medals = ['🥇','🥈','🥉'];
+    html += `<div class="section-hd">${list.icon} ${list.name}</div>`;
+    html += scored.map((d, i) =>
+      `<div class="board-row">
+        <span style="font-size:14px;min-width:20px">${medals[i]||''}</span>
+        <span style="font-size:15px">${d.i}</span>
+        <span style="flex:1;font-size:13px;font-weight:500">${d.n}</span>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${Math.round(d.score/max*100)}%"></div></div>
+        <span style="font-size:11px;color:var(--muted);min-width:60px;text-align:right">${d.score}pts · ${d.count}v</span>
+      </div>`
+    ).join('');
+  });
+  document.getElementById('board-body').innerHTML = html || '<p style="color:var(--muted);font-size:14px">Submit some rankings first!</p>';
+  document.getElementById('b-subs').textContent = totalSubs;
+  document.getElementById('b-champ').textContent = champScore > 0 ? champName.split(' ')[0] : '—';
+  document.getElementById('b-players').textContent = S.players.length;
+  const opts = [{ id: 'all', name: 'All categories' }, ...CATS.map(l => ({ id: l.id, name: l.name }))];
+  document.getElementById('board-chips').innerHTML = opts.map(c =>
+    `<button class="chip${S.bFilter === c.id ? ' on' : ''}" onclick="setBoardFilter('${c.id}')">${c.name}</button>`
+  ).join('');
+}
+
+function setBoardFilter(id) { S.bFilter = id; renderBoard(); }
+
+// ─── FEED ─────────────────────────────────────────────────────────────────
+function renderFeed() {
+  const opts = [{ id: 'all', name: 'All' }, ...CATS.map(l => ({ id: l.id, name: l.name }))];
+  document.getElementById('feed-chips').innerHTML = opts.map(c =>
+    `<button class="chip${S.fFilter === c.id ? ' on' : ''}" onclick="setFeedFilter('${c.id}')">${c.name}</button>`
+  ).join('');
+  const filtered = S.fFilter === 'all' ? S.takes : S.takes.filter(t => t.cat === S.fFilter);
+  document.getElementById('feed-body').innerHTML = [...filtered].reverse().map(feedCard).join('') ||
+    '<p style="color:var(--muted);font-size:13px">No hot takes yet. Go rank something!</p>';
+}
+
+function setFeedFilter(id) { S.fFilter = id; renderFeed(); }
+
+// ─── PROFILE ──────────────────────────────────────────────────────────────
+function renderProfile() {
+  if (S.sheetUrl) document.getElementById('prof-url').value = S.sheetUrl;
+  if (!S.user) {
+    document.getElementById('prof-card').innerHTML = '<p style="color:var(--muted);font-size:13px">Set up your profile on the Home tab first.</p>';
+    document.getElementById('share-cards').innerHTML = '';
+    renderSheetStatus(false);
+    return;
+  }
+  const done = CATS.filter(l => S.votes[l.id] && S.votes[l.id]._subs > 0);
+  const [bg] = pickColor(S.user.name);
+  document.getElementById('prof-card').innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      ${mkAv(S.user.name, 48, 16)}
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">${S.user.name}</div>
+        <div style="font-size:13px;color:var(--muted)">${done.length} of ${CATS.length} lists ranked</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:24px">
+      <div><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800">${done.length}</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Ranked</div></div>
+      <div><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800">${S.takes.filter(t => t.user === S.user.name).length}</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Hot takes</div></div>
+      <div><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800">${Math.round(done.length/CATS.length*100)}%</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Complete</div></div>
+    </div>`;
+  document.getElementById('share-cards').innerHTML = done.length ? done.map(list => {
+    const top5 = (S.orders[list.id] || list.items).slice(0, 5);
+    return `<div class="share-card">
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:10px">${list.icon} My ${list.name} ranking</div>
+      ${top5.map((item, i) => `<div class="share-row"><span style="min-width:22px;font-size:12px">${['🥇','🥈','🥉'][i]||i+1}</span><span>${item.i}</span><span>${item.n}</span></div>`).join('')}
+      <div style="font-size:10px;color:var(--muted);margin-top:10px">by ${S.user.name} · RankIt</div>
+    </div>`;
+  }).join('') : '<p style="color:var(--muted);font-size:13px">Rank some lists to generate your cards!</p>';
+  renderSheetStatus(!!S.sheetUrl);
+}
+
+// ─── NAV ──────────────────────────────────────────────────────────────────
+function nav(id) {
+  document.querySelectorAll('.nt').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  const idx = { home: 0, rank: 1, board: 2, feed: 3, profile: 4 }[id] || 0;
+  document.querySelectorAll('.nt')[idx].classList.add('on');
+  document.getElementById('pg-' + id).classList.add('on');
+  if (id === 'rank') renderCatGrid();
+  if (id === 'board') {
+    if (S.sheetUrl) {
+      loadFromSheet().then(ok => {
+        if (ok) {
+          const b = document.getElementById('board-sync-banner');
+          b.textContent = '↑ Live data loaded from Google Sheets';
+          b.style.display = 'block';
+          setTimeout(() => b.style.display = 'none', 3000);
+        }
+        renderBoard();
+      });
+    } else renderBoard();
+  }
+  if (id === 'feed') {
+    if (S.sheetUrl) loadFromSheet().then(() => renderFeed()); else renderFeed();
+  }
+  if (id === 'profile') renderProfile();
+  if (id === 'home' && S.user) updateDash();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+(function init() {
+  renderCatGrid();
+  if (S.user) {
+    document.getElementById('home-setup').style.display = 'none';
+    document.getElementById('home-dash').style.display = 'block';
+    document.getElementById('top-user').style.display = 'block';
+    updateTopbar();
+    updateDash();
+    if (S.sheetUrl) loadFromSheet().then(ok => { if (ok) updateDash(); });
+  }
+})();
+</script>
+</body>
+</html>
